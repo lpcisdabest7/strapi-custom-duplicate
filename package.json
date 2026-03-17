@@ -8,7 +8,8 @@
   "main": "./src/Repeatable.mjs",
   "exports": {
     ".": "./src/Repeatable.mjs",
-    "./Repeatable": "./src/Repeatable.mjs"
+    "./Repeatable": "./src/Repeatable.mjs",
+    "./component-preview": "./src/component-preview.ts"
   },
   "files": [
     "src"
