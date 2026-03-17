@@ -9,17 +9,32 @@ const LABEL_FIELDS = [
   'useCase', 'useCaseId',
 ];
 
+function extractLabel(obj) {
+  if (!obj || typeof obj !== 'object') return '';
+  for (const key of LABEL_FIELDS) {
+    if (typeof obj[key] === 'string' && obj[key]) return obj[key];
+  }
+  const skip = new Set(['id','documentId','__component','createdAt','updatedAt','publishedAt','locale']);
+  for (const [k, v] of Object.entries(obj)) {
+    if (skip.has(k)) continue;
+    if (typeof v === 'string' && v && v.length < 100) return v;
+  }
+  return '';
+}
+
 function flattenValue(val) {
   if (val === null || val === undefined) return '';
-  if (Array.isArray(val)) return `${val.length} item${val.length !== 1 ? 's' : ''}`;
+  if (Array.isArray(val)) {
+    if (val.length > 0 && val[0] && typeof val[0] === 'object') {
+      const label = extractLabel(val[0]);
+      if (label) {
+        return val.length > 1 ? `${label} (+${val.length - 1})` : label;
+      }
+    }
+    return `${val.length} item${val.length !== 1 ? 's' : ''}`;
+  }
   if (typeof val === 'object') {
-    const obj = val;
-    for (const key of LABEL_FIELDS) {
-      if (typeof obj[key] === 'string' && obj[key]) return obj[key];
-    }
-    for (const v of Object.values(obj)) {
-      if (typeof v === 'string' && v && v.length < 100) return v;
-    }
+    return extractLabel(val);
   }
   return '';
 }

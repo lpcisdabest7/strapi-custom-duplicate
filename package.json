@@ -1,6 +1,6 @@
 {
   "name": "strapi-custom-duplicate",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Enhanced Repeatable component for Strapi v5 with cross-record duplicate, search/filter, smart display labels, list-flatten middleware, and auto mainField configuration.",
   "license": "MIT",
   "author": "lpcisdabest7",

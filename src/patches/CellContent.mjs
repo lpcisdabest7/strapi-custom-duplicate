@@ -6,6 +6,27 @@ import { RepeatableComponent, SingleComponent } from './Components.mjs';
 import { MediaSingle, MediaMultiple } from './Media.mjs';
 import { RelationSingle, RelationMultiple } from './Relations.mjs';
 
+const _COMPONENT_LABEL_KEYS = ['_preview','name','title','defaultName','code','content','label','displayName','slug','role','action','placement','useCase'];
+
+const _extractComponentLabel = (obj, mainField)=>{
+    if (!obj || typeof obj !== 'object') return '';
+    // Try mainField first
+    if (mainField && typeof obj[mainField.name] === 'string' && obj[mainField.name]) {
+        return obj[mainField.name];
+    }
+    // Try priority fields
+    for (const k of _COMPONENT_LABEL_KEYS) {
+        if (typeof obj[k] === 'string' && obj[k]) return obj[k];
+    }
+    // Fallback: first short string value (skip id, documentId, __component)
+    const _skip = new Set(['id','documentId','__component','createdAt','updatedAt','publishedAt','locale']);
+    for (const [key, val] of Object.entries(obj)) {
+        if (_skip.has(key)) continue;
+        if (typeof val === 'string' && val && val.length < 100) return val;
+    }
+    return '';
+};
+
 const CellContent = ({ content, mainField, attribute, rowId, name })=>{
     if (!hasContent(content, mainField, attribute)) {
         return /*#__PURE__*/ jsx(Typography, {
@@ -41,6 +62,7 @@ const CellContent = ({ content, mainField, attribute, rowId, name })=>{
                 });
             }
         case 'component':
+            // Already flattened to string by server-side
             if (typeof content === 'string') {
                 return /*#__PURE__*/ jsx(Tooltip, {
                     label: content,
@@ -51,6 +73,42 @@ const CellContent = ({ content, mainField, attribute, rowId, name })=>{
                         children: content
                     })
                 });
+            }
+            // Repeatable component: extract meaningful label from first item
+            if (attribute.repeatable && Array.isArray(content)) {
+                const _firstLabel = content.length > 0 ? _extractComponentLabel(content[0], mainField) : '';
+                if (_firstLabel) {
+                    const _display = content.length > 1 ? _firstLabel + ' (+' + (content.length - 1) + ')' : _firstLabel;
+                    return /*#__PURE__*/ jsx(Tooltip, {
+                        label: _display,
+                        children: /*#__PURE__*/ jsx(Typography, {
+                            maxWidth: "30rem",
+                            ellipsis: true,
+                            textColor: "neutral800",
+                            children: _display
+                        })
+                    });
+                }
+                // Fallback to original RepeatableComponent
+                return /*#__PURE__*/ jsx(RepeatableComponent, {
+                    mainField: mainField,
+                    content: content
+                });
+            }
+            // Single component: extract meaningful label
+            if (content && typeof content === 'object' && !Array.isArray(content)) {
+                const _singleLabel = _extractComponentLabel(content, mainField);
+                if (_singleLabel) {
+                    return /*#__PURE__*/ jsx(Tooltip, {
+                        label: _singleLabel,
+                        children: /*#__PURE__*/ jsx(Typography, {
+                            maxWidth: "30rem",
+                            ellipsis: true,
+                            textColor: "neutral800",
+                            children: _singleLabel
+                        })
+                    });
+                }
             }
             if (attribute.repeatable) {
                 return /*#__PURE__*/ jsx(RepeatableComponent, {
@@ -91,6 +149,9 @@ const hasContent = (content, mainField, attribute)=>{
     if (attribute.type === 'component') {
         if (typeof content === 'string') return content.length > 0;
         if (attribute.repeatable || !mainField) {
+            // Arrays: check length; Objects (single component without mainField): check non-empty
+            if (Array.isArray(content)) return content.length > 0;
+            if (content && typeof content === 'object') return !isEmpty(content);
             return content?.length > 0;
         }
         const value = content?.[mainField.name];
