@@ -1,13 +1,26 @@
 {
   "name": "strapi-custom-duplicate",
   "version": "1.0.0",
-  "description": "Custom duplicate, search/filter, and enhanced labels for Strapi v5 repeatable components. Replaces patch-package approach.",
+  "description": "Enhanced Repeatable component for Strapi v5 with cross-record duplicate, search/filter, and smart display labels.",
   "license": "MIT",
   "author": "lpcisdabest7",
-  "scripts": {
-    "postinstall": "node scripts/postinstall.js"
+  "type": "module",
+  "main": "./src/Repeatable.mjs",
+  "exports": {
+    ".": "./src/Repeatable.mjs",
+    "./Repeatable": "./src/Repeatable.mjs"
   },
+  "files": [
+    "src"
+  ],
   "peerDependencies": {
-    "@strapi/content-manager": "^5.36.0"
+    "@strapi/content-manager": "^5.36.0",
+    "@strapi/admin": "^5.36.0",
+    "@strapi/design-system": "^2.0.0",
+    "@strapi/icons": "^2.0.0",
+    "react": "^18.0.0",
+    "react-intl": "^6.0.0 || ^7.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
   }
 }

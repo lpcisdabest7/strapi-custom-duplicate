@@ -8,17 +8,17 @@ import { getEmptyImage } from 'react-dnd-html5-backend';
 import { useIntl } from 'react-intl';
 import { useLocation } from 'react-router-dom';
 import { styled } from 'styled-components';
-import { ItemTypes } from '../../../../../constants/dragAndDrop.mjs';
-import { useDocumentContext } from '../../../../../hooks/useDocumentContext.mjs';
-import { useDragAndDrop } from '../../../../../hooks/useDragAndDrop.mjs';
-import { usePrev } from '../../../../../hooks/usePrev.mjs';
-import { getIn } from '../../../../../utils/objects.mjs';
-import { getTranslation } from '../../../../../utils/translations.mjs';
-import { transformDocument } from '../../../utils/data.mjs';
-import { createDefaultForm } from '../../../utils/forms.mjs';
-import { ResponsiveGridRoot, ResponsiveGridItem } from '../../FormLayout.mjs';
-import { useComponent, ComponentProvider } from '../ComponentContext.mjs';
-import { Initializer } from './Initializer.mjs';
+import { ItemTypes } from '@strapi/content-manager/dist/admin/constants/dragAndDrop.mjs';
+import { useDocumentContext } from '@strapi/content-manager/dist/admin/hooks/useDocumentContext.mjs';
+import { useDragAndDrop } from '@strapi/content-manager/dist/admin/hooks/useDragAndDrop.mjs';
+import { usePrev } from '@strapi/content-manager/dist/admin/hooks/usePrev.mjs';
+import { getIn } from '@strapi/content-manager/dist/admin/utils/objects.mjs';
+import { getTranslation } from '@strapi/content-manager/dist/admin/utils/translations.mjs';
+import { transformDocument } from '@strapi/content-manager/dist/admin/pages/EditView/utils/data.mjs';
+import { createDefaultForm } from '@strapi/content-manager/dist/admin/pages/EditView/utils/forms.mjs';
+import { ResponsiveGridRoot, ResponsiveGridItem } from '@strapi/content-manager/dist/admin/pages/EditView/components/FormLayout.mjs';
+import { useComponent, ComponentProvider } from '@strapi/content-manager/dist/admin/pages/EditView/components/FormInputs/ComponentContext.mjs';
+import { Initializer } from '@strapi/content-manager/dist/admin/pages/EditView/components/FormInputs/Component/Initializer.mjs';
 
 const getItemDisplayLabel = (itemData, mainField)=>{
     if (!itemData || typeof itemData !== 'object') return '';
