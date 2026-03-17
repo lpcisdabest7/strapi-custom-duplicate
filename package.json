@@ -9,7 +9,15 @@
   "exports": {
     ".": "./src/Repeatable.mjs",
     "./Repeatable": "./src/Repeatable.mjs",
-    "./component-preview": "./src/component-preview.ts"
+    "./component-preview": {
+      "types": "./src/component-preview.ts",
+      "default": "./src/component-preview.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "component-preview": ["./src/component-preview.ts"]
+    }
   },
   "files": [
     "src"
