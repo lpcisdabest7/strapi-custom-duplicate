@@ -1,0 +1,13 @@
+{
+  "name": "strapi-custom-duplicate",
+  "version": "1.0.0",
+  "description": "Custom duplicate, search/filter, and enhanced labels for Strapi v5 repeatable components. Replaces patch-package approach.",
+  "license": "MIT",
+  "author": "lpcisdabest7",
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "peerDependencies": {
+    "@strapi/content-manager": "^5.36.0"
+  }
+}
