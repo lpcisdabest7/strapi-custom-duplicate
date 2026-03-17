@@ -159,21 +159,50 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
     };
 
     // Get the items available at a given nesting level
+    // Check if an intermediate segment is a single component (object) vs repeatable (array)
+    const isSegmentSingle = (level)=>{
+        if (!targetRecord) return false;
+        let current = targetRecord;
+        for (let i = 0; i < level; i++) {
+            const seg = intermediateSegments[i];
+            const val = current[seg];
+            if (Array.isArray(val)) {
+                const selectedIdx = pathSelections[i];
+                if (selectedIdx === undefined || selectedIdx === null) return false;
+                current = val[selectedIdx];
+            } else if (val && typeof val === 'object') {
+                current = val;
+            } else {
+                return false;
+            }
+            if (!current) return false;
+        }
+        const seg = intermediateSegments[level];
+        const val = current[seg];
+        return val && typeof val === 'object' && !Array.isArray(val);
+    };
+
     const getItemsAtLevel = (level)=>{
         if (!targetRecord) return [];
         let current = targetRecord;
         for (let i = 0; i < level; i++) {
             const seg = intermediateSegments[i];
-            const arr = current[seg];
-            if (!Array.isArray(arr)) return [];
-            const selectedIdx = pathSelections[i];
-            if (selectedIdx === undefined || selectedIdx === null) return [];
-            current = arr[selectedIdx];
+            const val = current[seg];
+            if (Array.isArray(val)) {
+                const selectedIdx = pathSelections[i];
+                if (selectedIdx === undefined || selectedIdx === null) return [];
+                current = val[selectedIdx];
+            } else if (val && typeof val === 'object') {
+                current = val;
+            } else {
+                return [];
+            }
             if (!current) return [];
         }
         const seg = intermediateSegments[level];
-        const arr = current[seg];
-        return Array.isArray(arr) ? arr : [];
+        const val = current[seg];
+        if (Array.isArray(val)) return val;
+        return [];
     };
 
     // Get the final target container where we'll append the component
@@ -193,7 +222,10 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
     };
 
     const isCrossRecord = selectedDocumentId && selectedDocumentId !== currentDocumentId;
-    const allLevelsSelected = !isCrossRecord || (pathSelections.length === intermediateSegments.length && pathSelections.every(v => v !== null && v !== undefined));
+    const allLevelsSelected = !isCrossRecord || intermediateSegments.every((seg, i) => {
+        if (isSegmentSingle(i)) return true;
+        return pathSelections[i] !== null && pathSelections[i] !== undefined;
+    });
 
     const handleConfirm = async ()=>{
         if (!selectedDocumentId) return;
@@ -221,7 +253,12 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
             let container = fresh;
             for (let i = 0; i < intermediateSegments.length; i++) {
                 const seg = intermediateSegments[i];
-                container = container[seg][pathSelections[i]];
+                const val = container[seg];
+                if (Array.isArray(val)) {
+                    container = val[pathSelections[i]];
+                } else if (val && typeof val === 'object') {
+                    container = val;
+                }
             }
 
             // Clone and append
@@ -272,7 +309,16 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
         for (const val of candidates) {
             if (typeof val === 'string' && val) return val;
         }
-        return `#${record.documentId?.slice(0, 8) || record.id}`;
+        // Dig into component fields
+        for (const key of Object.keys(record)) {
+            const val = record[key];
+            if (val && typeof val === 'object' && !Array.isArray(val)) {
+                for (const subKey of ['defaultName', 'name', 'title', 'code', 'content']) {
+                    if (typeof val[subKey] === 'string' && val[subKey]) return val[subKey];
+                }
+            }
+        }
+        return `${targetArrayField || 'Record'} #${record.id || record.documentId?.slice(0, 8)}`;
     };
 
     return /*#__PURE__*/ jsx(Modal.Root, {
@@ -333,8 +379,13 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
                         }),
 
                         isCrossRecord && targetRecord && intermediateSegments.map((segmentName, levelIndex)=>{
-                            // Only show this level if all previous levels are selected
-                            const allPreviousSelected = pathSelections.slice(0, levelIndex).every(v => v !== null && v !== undefined);
+                            // Skip single components — auto-traversed
+                            if (isSegmentSingle(levelIndex)) return null;
+
+                            const allPreviousSelected = intermediateSegments.slice(0, levelIndex).every((s, i) => {
+                                if (isSegmentSingle(i)) return true;
+                                return pathSelections[i] !== null && pathSelections[i] !== undefined;
+                            });
                             if (levelIndex > 0 && !allPreviousSelected) return null;
 
                             const items = getItemsAtLevel(levelIndex);
