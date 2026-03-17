@@ -43,19 +43,37 @@ if (!nodeModules) {
   process.exit(0);
 }
 
-const src = resolve(__dirname, '..', 'src', 'Repeatable.mjs');
-const dest = join(nodeModules, TARGET_REL);
+const PATCHES = [
+  {
+    src: resolve(__dirname, '..', 'src', 'Repeatable.mjs'),
+    dest: join(nodeModules, '@strapi/content-manager/dist/admin/pages/EditView/components/FormInputs/Component/Repeatable.mjs'),
+    label: 'Repeatable.mjs (duplicate/search/labels)',
+  },
+  {
+    src: resolve(__dirname, '..', 'src', 'patches', 'CellContent.mjs'),
+    dest: join(nodeModules, '@strapi/content-manager/dist/admin/pages/ListView/components/TableCells/CellContent.mjs'),
+    label: 'CellContent.mjs (list view component flatten)',
+  },
+  {
+    src: resolve(__dirname, '..', 'src', 'patches', 'collection-types.js'),
+    dest: join(nodeModules, '@strapi/content-manager/dist/server/controllers/collection-types.js'),
+    label: 'collection-types.js (server list flatten)',
+  },
+];
 
-if (!existsSync(src)) {
-  console.error(`[strapi-custom-duplicate] Source file not found: ${src}`);
-  process.exit(1);
+let applied = 0;
+for (const patch of PATCHES) {
+  if (!existsSync(patch.src)) {
+    console.warn(`[strapi-custom-duplicate] Source not found: ${patch.src}`);
+    continue;
+  }
+  try {
+    mkdirSync(dirname(patch.dest), { recursive: true });
+    copyFileSync(patch.src, patch.dest);
+    applied++;
+    console.log(`[strapi-custom-duplicate] ✔ ${patch.label}`);
+  } catch (err) {
+    console.error(`[strapi-custom-duplicate] ✖ ${patch.label}: ${err.message}`);
+  }
 }
-
-try {
-  mkdirSync(dirname(dest), { recursive: true });
-  copyFileSync(src, dest);
-  console.log(`[strapi-custom-duplicate] Patched Repeatable.mjs -> ${dest}`);
-} catch (err) {
-  console.error(`[strapi-custom-duplicate] Failed to copy Repeatable.mjs: ${err.message}`);
-  process.exit(1);
-}
+console.log(`[strapi-custom-duplicate] ${applied}/${PATCHES.length} patches applied.`);
