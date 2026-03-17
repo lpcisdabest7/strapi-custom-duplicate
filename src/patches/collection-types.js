@@ -307,7 +307,19 @@ var collectionTypes = {
                     if (_a.type === 'component' && _rec[_f] != null && typeof _rec[_f] === 'object') {
                         const _v = _rec[_f];
                         if (Array.isArray(_v)) {
-                            _rec[_f] = _v.length + ' item' + (_v.length !== 1 ? 's' : '');
+                            // Extract first item's label + count
+                            let _label = '';
+                            if (_v.length > 0 && _v[0] && typeof _v[0] === 'object') {
+                                for (const _k of _LK) { if (typeof _v[0][_k] === 'string' && _v[0][_k]) { _label = _v[0][_k]; break; } }
+                                if (!_label) { for (const _val of Object.values(_v[0])) { if (typeof _val === 'string' && _val && _val.length < 100) { _label = _val; break; } } }
+                            }
+                            if (_label && _v.length > 1) {
+                                _rec[_f] = _label + ' (+' + (_v.length - 1) + ')';
+                            } else if (_label) {
+                                _rec[_f] = _label;
+                            } else {
+                                _rec[_f] = _v.length + ' item' + (_v.length !== 1 ? 's' : '');
+                            }
                         } else {
                             let _flat = '';
                             for (const _k of _LK) { if (typeof _v[_k] === 'string' && _v[_k]) { _flat = _v[_k]; break; } }
