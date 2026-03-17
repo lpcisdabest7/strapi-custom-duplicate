@@ -13,15 +13,23 @@ const TARGET_REL =
  * that contains @strapi/content-manager.
  */
 function findNodeModules() {
+  // Start from the package root: scripts/ -> strapi-custom-duplicate/
   let dir = resolve(__dirname, '..');
-  const root = dirname(dir); // stop guard
 
-  while (dir !== root) {
-    const candidate = join(dir, 'node_modules');
-    if (existsSync(join(candidate, '@strapi', 'content-manager'))) {
-      return candidate;
+  for (let i = 0; i < 10; i++) {
+    const parent = dirname(dir);
+    if (parent === dir) break; // reached filesystem root
+
+    // Check if parent is node_modules containing @strapi/content-manager
+    if (existsSync(join(parent, '@strapi', 'content-manager'))) {
+      return parent;
     }
-    dir = dirname(dir);
+    // Check if parent has a node_modules/ with @strapi/content-manager
+    const nmDir = join(parent, 'node_modules');
+    if (existsSync(join(nmDir, '@strapi', 'content-manager'))) {
+      return nmDir;
+    }
+    dir = parent;
   }
   return null;
 }
