@@ -268,7 +268,11 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
     if (!isOpen) return null;
 
     const getRecordLabel = (record)=>{
-        return record.name || record.title || record.code || record.slug || record.displayName || record.bundleId || `#${record.documentId?.slice(0, 8)}`;
+        const candidates = [record.name, record.title, record.code, record.slug, record.displayName, record.bundleId];
+        for (const val of candidates) {
+            if (typeof val === 'string' && val) return val;
+        }
+        return `#${record.documentId?.slice(0, 8) || record.id}`;
     };
 
     return /*#__PURE__*/ jsx(Modal.Root, {
