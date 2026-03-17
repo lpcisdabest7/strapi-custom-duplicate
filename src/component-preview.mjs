@@ -4,52 +4,15 @@
  * so Strapi content-manager can display meaningful accordion headers.
  */
 
-interface LocalizedContent {
-  content?: string;
-  country?: unknown;
-}
-
-interface StyleBlock {
-  _preview?: string;
-  titles?: LocalizedContent[];
-  subTitles?: LocalizedContent[];
-  layout?: string;
-  style?: unknown;
-}
-
-interface BannerBlock {
-  _preview?: string;
-  titles?: LocalizedContent[];
-  action?: string;
-  categoryCode?: string;
-  tool?: string;
-  style?: unknown;
-}
-
-interface CategoryBlock {
-  code?: string;
-  styles?: StyleBlock[];
-}
-
-interface Screen {
-  title?: string;
-  banners?: BannerBlock[];
-  categories?: CategoryBlock[];
-}
-
-function getFirstTitle(titles?: LocalizedContent[]): string {
+function getFirstTitle(titles) {
   if (!Array.isArray(titles) || titles.length === 0) return '';
   return titles[0]?.content || '';
 }
 
-function computeStyleBlockPreview(
-  styleBlock: StyleBlock,
-  styleCode?: string
-): string {
+function computeStyleBlockPreview(styleBlock, styleCode) {
   const title = getFirstTitle(styleBlock.titles);
   const subTitle = getFirstTitle(styleBlock.subTitles);
 
-  // Format: "title - subTitle" or just "title"
   let label = '';
   if (title && subTitle) {
     label = `${title} - ${subTitle}`;
@@ -57,7 +20,6 @@ function computeStyleBlockPreview(
     label = title;
   }
 
-  // Prepend style code if available
   if (styleCode && label) {
     return `[${styleCode}] ${label}`;
   }
@@ -67,8 +29,8 @@ function computeStyleBlockPreview(
   return styleBlock.layout || 'Style Block';
 }
 
-function computeBannerPreview(banner: BannerBlock): string {
-  const parts: string[] = [];
+function computeBannerPreview(banner) {
+  const parts = [];
   if (banner.action) parts.push(`[${banner.action}]`);
 
   const title = getFirstTitle(banner.titles);
@@ -82,16 +44,8 @@ function computeBannerPreview(banner: BannerBlock): string {
   return parts.join(' ') || 'Banner';
 }
 
-/**
- * Resolves style codes from relation IDs in batch.
- * Handles both numeric IDs and documentId strings.
- */
-async function resolveStyleCodes(
-  styleIds: Set<string>,
-  strapi: any,
-  styleContentType: string
-): Promise<Map<string, string>> {
-  const codeMap = new Map<string, string>();
+async function resolveStyleCodes(styleIds, strapi, styleContentType) {
+  const codeMap = new Map();
   if (styleIds.size === 0) return codeMap;
 
   try {
@@ -124,17 +78,15 @@ async function resolveStyleCodes(
   return codeMap;
 }
 
-function extractStyleId(styleRef: unknown): string | null {
+function extractStyleId(styleRef) {
   if (!styleRef) return null;
   if (typeof styleRef === 'number' || typeof styleRef === 'string') {
     return String(styleRef);
   }
   if (typeof styleRef === 'object' && styleRef !== null) {
-    const obj = styleRef as Record<string, unknown>;
-    if (obj.id) return String(obj.id);
-    if (obj.documentId) return String(obj.documentId);
-    // Handle connect format: { connect: [{ id: 1 }] } or { set: [...] }
-    const items = (obj.connect || obj.set) as Array<Record<string, unknown>> | undefined;
+    if (styleRef.id) return String(styleRef.id);
+    if (styleRef.documentId) return String(styleRef.documentId);
+    const items = styleRef.connect || styleRef.set;
     if (Array.isArray(items) && items.length > 0) {
       return String(items[0].id || items[0].documentId || '');
     }
@@ -145,15 +97,10 @@ function extractStyleId(styleRef: unknown): string | null {
 /**
  * Traverse screens data and compute _preview for style-blocks and banners.
  */
-export async function computePreviewLabels(
-  data: { screens?: Screen[] },
-  strapi: any,
-  styleContentType: string
-): Promise<void> {
+export async function computePreviewLabels(data, strapi, styleContentType) {
   if (!data?.screens || !Array.isArray(data.screens)) return;
 
-  // Collect all style relation IDs
-  const styleIds = new Set<string>();
+  const styleIds = new Set();
   for (const screen of data.screens) {
     if (screen?.banners) {
       for (const banner of screen.banners) {
@@ -173,14 +120,8 @@ export async function computePreviewLabels(
     }
   }
 
-  // Batch resolve style codes
-  const styleCodeMap = await resolveStyleCodes(
-    styleIds,
-    strapi,
-    styleContentType
-  );
+  const styleCodeMap = await resolveStyleCodes(styleIds, strapi, styleContentType);
 
-  // Compute preview labels
   for (const screen of data.screens) {
     if (screen?.banners) {
       for (const banner of screen.banners) {
@@ -193,10 +134,7 @@ export async function computePreviewLabels(
           for (const styleBlock of category.styles) {
             const id = extractStyleId(styleBlock.style);
             const styleCode = id ? styleCodeMap.get(id) : undefined;
-            styleBlock._preview = computeStyleBlockPreview(
-              styleBlock,
-              styleCode
-            );
+            styleBlock._preview = computeStyleBlockPreview(styleBlock, styleCode);
           }
         }
       }

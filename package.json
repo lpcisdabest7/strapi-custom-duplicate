@@ -10,13 +10,13 @@
     ".": "./src/Repeatable.mjs",
     "./Repeatable": "./src/Repeatable.mjs",
     "./component-preview": {
-      "types": "./src/component-preview.ts",
-      "default": "./src/component-preview.ts"
+      "types": "./src/component-preview.d.ts",
+      "default": "./src/component-preview.mjs"
     }
   },
   "typesVersions": {
     "*": {
-      "component-preview": ["./src/component-preview.ts"]
+      "component-preview": ["./src/component-preview.d.ts"]
     }
   },
   "files": [
