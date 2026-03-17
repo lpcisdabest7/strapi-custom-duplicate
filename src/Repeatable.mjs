@@ -159,7 +159,8 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
     };
 
     // Get the items available at a given nesting level
-    // Check if an intermediate segment is a single component (object) vs repeatable (array)
+    // Check if an intermediate segment is a single component (object or null/undefined) vs repeatable (array)
+    // null/undefined segments are treated as single — they will be auto-created during save
     const isSegmentSingle = (level)=>{
         if (!targetRecord) return false;
         let current = targetRecord;
@@ -173,13 +174,15 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
             } else if (val && typeof val === 'object') {
                 current = val;
             } else {
-                return false;
+                // null/undefined — treat parent levels as single, stop traversal
+                return true;
             }
-            if (!current) return false;
+            if (!current) return true;
         }
         const seg = intermediateSegments[level];
         const val = current[seg];
-        return val && typeof val === 'object' && !Array.isArray(val);
+        // null/undefined or single object → single; array → not single
+        return !Array.isArray(val);
     };
 
     const getItemsAtLevel = (level)=>{
@@ -250,10 +253,16 @@ const DuplicateTargetModal = ({ isOpen, onClose, onConfirmSameRecord, componentD
             if (!fresh) throw new Error('Target record not found');
 
             // Navigate to target container using path selections
+            // Auto-create null/missing single component segments
             let container = fresh;
             for (let i = 0; i < intermediateSegments.length; i++) {
                 const seg = intermediateSegments[i];
-                const val = container[seg];
+                let val = container[seg];
+                if (val === null || val === undefined) {
+                    // Auto-create empty single component
+                    container[seg] = {};
+                    val = container[seg];
+                }
                 if (Array.isArray(val)) {
                     container = val[pathSelections[i]];
                 } else if (val && typeof val === 'object') {
