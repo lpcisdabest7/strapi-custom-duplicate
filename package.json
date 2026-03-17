@@ -1,7 +1,7 @@
 {
   "name": "strapi-custom-duplicate",
-  "version": "1.0.0",
-  "description": "Enhanced Repeatable component for Strapi v5 with cross-record duplicate, search/filter, and smart display labels.",
+  "version": "1.1.0",
+  "description": "Enhanced Repeatable component for Strapi v5 with cross-record duplicate, search/filter, smart display labels, list-flatten middleware, and auto mainField configuration.",
   "license": "MIT",
   "author": "lpcisdabest7",
   "type": "module",
@@ -12,24 +12,28 @@
     "./component-preview": {
       "types": "./src/component-preview.d.ts",
       "default": "./src/component-preview.mjs"
+    },
+    "./list-flatten": {
+      "types": "./src/list-flatten.d.ts",
+      "default": "./src/list-flatten.mjs"
+    },
+    "./bootstrap": {
+      "types": "./src/bootstrap.d.ts",
+      "default": "./src/bootstrap.mjs"
     }
   },
   "typesVersions": {
     "*": {
-      "component-preview": ["./src/component-preview.d.ts"]
+      "component-preview": ["./src/component-preview.d.ts"],
+      "list-flatten": ["./src/list-flatten.d.ts"],
+      "bootstrap": ["./src/bootstrap.d.ts"]
     }
   },
-  "files": [
-    "src"
-  ],
+  "files": ["src", "scripts"],
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  },
   "peerDependencies": {
-    "@strapi/content-manager": "^5.36.0",
-    "@strapi/admin": "^5.36.0",
-    "@strapi/design-system": "^2.0.0",
-    "@strapi/icons": "^2.0.0",
-    "react": "^18.0.0",
-    "react-intl": "^6.0.0 || ^7.0.0",
-    "react-router-dom": "^6.0.0",
-    "styled-components": "^6.0.0"
+    "@strapi/content-manager": "^5.36.0"
   }
 }
