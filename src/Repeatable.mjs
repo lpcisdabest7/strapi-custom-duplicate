@@ -47,7 +47,7 @@ const deepCloneComponentData = (data)=>{
     const clone = {};
     for (const [key, val] of Object.entries(data)) {
         if (key === '__temp_key__') continue;
-        if (key === 'id' && !data.documentId) continue;
+        if (key === 'id' || key === 'documentId') continue;
         clone[key] = deepCloneComponentData(val);
     }
     return clone;
